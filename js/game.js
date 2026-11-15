@@ -558,6 +558,7 @@ export function createGame({ canvas, callbacks }) {
     candleScreens,
     debugRay,
     candleTotal: () => world.candles.length,
+    get camera() { return camera; },
     get state() { return state; },
     get found() { return found; },
     get world() { return world; },

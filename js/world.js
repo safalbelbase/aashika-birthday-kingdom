@@ -422,7 +422,7 @@ export function createWorld() {
     const flameTex = flameTexture();
     for (let i = 0; i < candleCount; i++) {
       const a = (i / candleCount) * Math.PI * 2 + 0.3;
-      const r = 11 + Math.random() * 6;
+      const r = 14 + ((i % 3) - 1) * 1.2;
       const cx = Math.cos(a) * r;
       const cz = Math.sin(a) * r;
       const col = candleCols[i % candleCols.length];
@@ -458,13 +458,20 @@ export function createWorld() {
       candles.push({ stick, flame, light, hit, lit: false, phase: i });
     }
 
-    /* cherry on top */
+    /* cherry on top — small, with a stem so it reads as fruit, not a candle */
     const cherry = new T.Mesh(
-      new T.SphereGeometry(2.6, 16, 16),
+      new T.SphereGeometry(2, 16, 16),
       new T.MeshStandardMaterial({ color: 0xc81e3a, roughness: 0.15, metalness: 0.1 })
     );
-    cherry.position.set(0, candleY + 1.6, 0);
+    cherry.position.set(0, candleY + 1.4, 0);
     cake.add(cherry);
+
+    const stem = new T.Mesh(
+      new T.CylinderGeometry(0.35, 0.5, 3, 8),
+      new T.MeshStandardMaterial({ color: 0x5c3a24, roughness: 0.7 })
+    );
+    stem.position.set(0, candleY + 3.9, 0);
+    cake.add(stem);
   }
 
   createChocolateCake();
@@ -483,14 +490,18 @@ export function createWorld() {
     wedge2.position.y = 22 + 8.5;
     slice.add(wedge2);
 
-    /* flat cross-section faces so the cut edge isn't hollow */
+    /* flat cross-section faces so the cut edge isn't hollow.
+       the cut face of a wedge is a CHORD, not the full radius — size the
+       cap to the chord so it doesn't overhang the slice. */
     function radialCap(radius, height, yPos, angle) {
-      const geo = new T.PlaneGeometry(radius, height);
-      geo.translate(radius / 2, height / 2, 0);
-      const mesh = new T.Mesh(geo, sliceCrumbMat);
-      mesh.rotation.y = -angle;
-      mesh.position.y = yPos - height / 2;
-      return mesh;
+      const chord = 2 * radius * Math.sin(SLICE_ANG / 2);
+      const g = new T.Group();
+      const face = new T.Mesh(new T.PlaneGeometry(chord, height), sliceCrumbMat);
+      face.position.x = radius;
+      g.add(face);
+      g.position.y = yPos - height / 2;
+      g.rotation.y = angle - Math.PI / 2;
+      return g;
     }
     slice.add(radialCap(36, 22, 22, 0));
     slice.add(radialCap(36, 22, 22, SLICE_ANG));
@@ -717,7 +728,7 @@ export function createWorld() {
         16.2 * ease + Math.sin(ease * Math.PI) * 6,
         57.35 * ease
       );
-      slice.rotation.y = ease * 0.5;
+      slice.rotation.z = ease * 0.35;
       if (ease > 0.2) plateG.visible = true;
       if (popT >= 1) sliceState = "plate";
     } else if (sliceState === "eaten" && slice.visible) {
