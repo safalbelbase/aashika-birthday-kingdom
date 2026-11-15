@@ -231,7 +231,7 @@ export function createGame({ canvas, callbacks }) {
           state = "castle";
           sfx("whoosh");
           flyTo(GATE_VIEW, reduced ? 0 : 2.2, () => {
-            if (cb.onCastleAhead) cb.onCastleAhead();
+            enterCastle();
           });
         }, 900);
       }
@@ -300,12 +300,13 @@ export function createGame({ canvas, callbacks }) {
     if (!pendingFlight || state !== "collect") return;
     pendingFlight = false;
     state = "flight";
-    autoSpin = false;   // the cake shot must hold still — candles are small targets
     sfx("sparkle");
     if (cb.onAllStars) cb.onAllStars();
-    /* the cake starts surfacing while the camera is still flying — no dead pedestal */
+    /* the cake starts surfacing while the camera swings around the castle */
     world.showCake();
-    flyTo(CAKE_VIEW, reduced ? 0 : 2.1, () => {
+    const orbit = { ...CAKE_VIEW, theta: CAKE_VIEW.theta + Math.PI * 2 };
+    flyTo(orbit, reduced ? 0 : 3.4, () => {
+      autoSpin = false;   // now hold still — candles are small targets
       world.wakeCastle();
       state = "candles";
       if (cb.onCakeReady) cb.onCakeReady();

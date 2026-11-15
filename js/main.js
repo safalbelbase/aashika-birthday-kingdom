@@ -95,7 +95,7 @@ const letterText = $("#letterText");
 const letterAgainBtn = $("#letterAgainBtn");
 const letterWishesBtn = $("#letterWishesBtn");
 const pillWishes = $("#pillWishes");
-let barPhase = "wish";   // wish | cut | castle
+let barPhase = "wish";   // wish | cut
 
 function setBar({ line, sub, btn, btn2, phase }) {
   barLine.textContent = line;
@@ -105,12 +105,11 @@ function setBar({ line, sub, btn, btn2, phase }) {
   else barBtn.hidden = true;
   if (btn2) { barBtn2.textContent = btn2; barBtn2.hidden = false; }
   else barBtn2.hidden = true;
-  barBtn.classList.toggle("btn--ghost", phase === "castle");
   barPhase = phase;
   barWrap.hidden = false;
 }
 
-const PHASE_STATE = { wish: "wish", cut: "finale", castle: "castle" };
+const PHASE_STATE = { wish: "wish", cut: "finale" };
 
 barBtn.addEventListener("click", () => {
   /* ignore a stale bar: the phase must match where the game actually is */
@@ -119,7 +118,6 @@ barBtn.addEventListener("click", () => {
   barWrap.hidden = true;
   if (barPhase === "wish") game.makeWish();
   else if (barPhase === "cut") game.cutCake();
-  else if (barPhase === "castle") game.enterCastle();
 });
 
 barBtn2.addEventListener("click", () => {
@@ -244,15 +242,6 @@ function boot() {
       onBite(n) {
         progress.textContent = `nom ${n} / 3`;
         showCard(TEXT.biteLines[n - 1] || "✦");
-      },
-      onCastleAhead() {
-        setBar({
-          line: TEXT.afterEat,
-          btn: TEXT.enterCastleBtn,
-          btn2: TEXT.readBtn,
-          phase: "castle",
-        });
-        say(TEXT.afterEat);
       },
       onCastleEntered() {
         barWrap.hidden = true;

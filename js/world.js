@@ -476,50 +476,17 @@ export function createWorld() {
 
   createChocolateCake();
 
-  /* ---- the slice that pops out (same chocolate cake) ---- */
-  const SLICE_ANG = Math.PI / 5;
+  /* ---- the slice that pops out — one simple triangular prism ---- */
   const slice = new T.Group();
-  const sliceCrumbMat = new T.MeshStandardMaterial({ color: 0x5c3a24, roughness: 0.75, side: T.DoubleSide });
-
   {
-    /* the two curved tiers, cut to a wedge */
-    const wedge1 = new T.Mesh(new T.CylinderGeometry(36, 36, 22, 32, 1, false, 0, SLICE_ANG), chocMat);
-    wedge1.position.y = 11;
-    slice.add(wedge1);
-    const wedge2 = new T.Mesh(new T.CylinderGeometry(25, 25, 17, 32, 1, false, 0, SLICE_ANG), chocMat);
-    wedge2.position.y = 22 + 8.5;
-    slice.add(wedge2);
-
-    /* flat cross-section faces so the cut edge isn't hollow.
-       the cut face of a wedge is a CHORD, not the full radius — size the
-       cap to the chord so it doesn't overhang the slice. */
-    function radialCap(radius, height, yPos, angle) {
-      const chord = 2 * radius * Math.sin(SLICE_ANG / 2);
-      const g = new T.Group();
-      const face = new T.Mesh(new T.PlaneGeometry(chord, height), sliceCrumbMat);
-      face.position.x = radius;
-      g.add(face);
-      g.position.y = yPos - height / 2;
-      g.rotation.y = angle - Math.PI / 2;
-      return g;
-    }
-    slice.add(radialCap(36, 22, 22, 0));
-    slice.add(radialCap(36, 22, 22, SLICE_ANG));
-    slice.add(radialCap(25, 17, 22 + 17, 0));
-    slice.add(radialCap(25, 17, 22 + 17, SLICE_ANG));
-
-    /* ganache drips along the slice's outer crust */
-    for (let i = 0; i < 4; i++) {
-      const a = (i / 4) * SLICE_ANG;
-      const drop = new T.Mesh(new T.SphereGeometry(2 + Math.random(), 8, 8), ganacheMat);
-      drop.position.set(Math.cos(a) * 36, 20 - Math.random() * 3, Math.sin(a) * 36);
-      drop.scale.y = 1.5;
-      slice.add(drop);
-    }
+    const prism = new T.Mesh(
+      new T.CylinderGeometry(36, 36, 26, 3, 1),
+      chocMat
+    );
+    prism.position.y = 13;
+    prism.rotation.y = -Math.PI / 2;   // flat side faces the camera
+    slice.add(prism);
   }
-
-  /* centre the wedge on +z so it faces the camera like the rest of the cake */
-  slice.rotation.y = -SLICE_ANG / 2;
   slice.visible = false;
   cake.add(slice);
 
@@ -528,7 +495,7 @@ export function createWorld() {
     new T.SphereGeometry(10, 8, 6),
     new T.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
   );
-  sliceHit.position.set(0, 10, 0);
+  sliceHit.position.set(0, 13, 0);
   slice.add(sliceHit);
 
   /* the plate the slice lands on (world units -> local via CAKE_SCALE) */
@@ -707,6 +674,21 @@ export function createWorld() {
       cake.visible = cake.position.y > -4.95;
     }
 
+    // collected stars pop outward and fade away
+    for (let i = popAnims.length - 1; i >= 0; i--) {
+      const p = popAnims[i];
+      p.t += dt;
+      const k = Math.min(1, p.t / 0.8);
+      p.o.scale.setScalar(0.74 + k * 1.4);
+      p.u.halo.material.opacity = (0.62 + Math.sin(t * 2.6 + p.u.phase) * 0.24) * (1 - k);
+      p.u.ring.material.opacity = 0.6 * (1 - k);
+      p.u.core.material.emissiveIntensity = 0.25 + (1 - k) * 0.9;
+      if (k >= 1) {
+        p.o.visible = false;
+        popAnims.splice(i, 1);
+      }
+    }
+
     // candle flames — flicker
     for (const c of candles) {
       if (c.lit) {
@@ -785,14 +767,25 @@ export function createWorld() {
       c.lit = false;
       c.flame.material.opacity = 0;
       c.light.intensity = 0;
+      /* soft smoke puff rising from the wick as the flame dies */
+      const p = new T.Vector3();
+      c.flame.getWorldPosition(p);
+      p.y += 0.4;
+      burst(p, 0xd9c8ff, { count: 14, speed: 0.9, life: 1.5, size: 0.3, gravity: -0.25 });
     });
   }
+
+  const popAnims = [];
 
   function hideOrb(i) {
     const o = orbs[i];
     if (!o || o.userData.gone) return false;
     o.userData.gone = true;
-    o.visible = false;
+    const u = o.userData;
+    const wp = new T.Vector3();
+    o.getWorldPosition(wp);
+    burst(wp, 0xffe9c0, { count: 26, speed: 2.2, life: 1.0, size: 0.22, gravity: 1.2 });
+    popAnims.push({ o, u, t: 0 });
     return true;
   }
 
@@ -834,7 +827,7 @@ export function createWorld() {
   function resetSlice() {
     slice.visible = false;
     slice.position.set(0, 0, 0);
-    slice.rotation.set(0, -SLICE_ANG / 2, 0);
+    slice.rotation.set(0, 0, 0);
     slice.scale.setScalar(1);
     plateG.visible = false;
     sliceState = "whole";
