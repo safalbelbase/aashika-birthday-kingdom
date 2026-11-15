@@ -231,7 +231,15 @@ export function createGame({ canvas, callbacks }) {
           state = "castle";
           sfx("whoosh");
           flyTo(GATE_VIEW, reduced ? 0 : 2.2, () => {
-            enterCastle();
+            /* fly through the door: fade, swap to the interior, fade back */
+            const fadeEl = document.getElementById("fade");
+            if (fadeEl) fadeEl.style.opacity = "1";
+            later(() => {
+              enterCastle();
+              later(() => {
+                if (fadeEl) fadeEl.style.opacity = "0";
+              }, 350);
+            }, 800);
           });
         }, 900);
       }

@@ -52,6 +52,14 @@ html,body{
     linear-gradient(180deg, rgba(10,8,36,.5), transparent 22%, transparent 78%, rgba(6,4,20,.6));
 }
 
+/* full-screen fade used when passing through the castle door */
+#fade{
+  position:fixed; inset:0; pointer-events:none; z-index:4;
+  background:#07091a;
+  opacity:0;
+  transition:opacity .7s ease;
+}
+
 #ui{ position:fixed; inset:0; z-index:3; pointer-events:none; }
 #ui button, #ui .sheet, #ui .screen{ pointer-events:auto; }
 
