@@ -8,7 +8,6 @@ import { sfx } from "./audio.js";
 
 const HOME = { theta: 0.55, phi: 1.16, radius: 15, target: [0, 1.7, 0] };
 const CAKE_VIEW = { theta: 0.1, phi: 1.24, radius: 7.4, target: [0, 1.35, 2.3] };
-const EAT_VIEW = { theta: 0.15, phi: 1.15, radius: 3.4, target: [0.25, 0.62, 4.45] };
 const GATE_VIEW = { theta: 0.14, phi: 1.34, radius: 4.8, target: [0, 1.2, -2.5] };
 
 export function createGame({ canvas, callbacks }) {
@@ -218,26 +217,6 @@ export function createGame({ canvas, callbacks }) {
       return;
     }
 
-    if (state === "eat") {
-      const hit = pick([world.sliceHit], e);
-      if (!hit) return;
-      const b = world.biteSlice();
-      if (!b) return;
-      sfx("nom");
-      if (navigator.vibrate) { try { navigator.vibrate(16); } catch (_) {} }
-      if (cb.onBite) cb.onBite(b);
-      if (world.sliceState === "eaten" && b >= 3) {
-        later(() => {
-          state = "castle";
-          sfx("whoosh");
-          flyTo(GATE_VIEW, reduced ? 0 : 2.2, () => {
-            if (cb.onCastleAhead) cb.onCastleAhead();
-          });
-        }, 900);
-      }
-      return;
-    }
-
     if (state === "candles") {
       /* candle hit spheres overlap, so walk the intersections and light
          the first one that is not already lit */
@@ -269,7 +248,7 @@ export function createGame({ canvas, callbacks }) {
   }
 
   /* ------------------------------------------------------------- state --- */
-  let state = "idle"; // idle | collect | flight | candles | wish | finale | eat | castle
+  let state = "idle"; // idle | collect | flight | candles | wish | finale | castle
   let found = 0;
   const total = 8;
   let pendingFlight = false;
@@ -361,19 +340,12 @@ export function createGame({ canvas, callbacks }) {
     flyTo({ theta: 0.5, phi: 1.12, radius: 13.5, target: [0, 2.2, 1.2] }, reduced ? 0 : 2.4);
 
     later(() => {
-      if (cb.onCutReady) cb.onCutReady();
+      state = "castle";
+      sfx("whoosh");
+      flyTo(GATE_VIEW, reduced ? 0 : 2.2, () => {
+        if (cb.onCastleAhead) cb.onCastleAhead();
+      });
     }, 300 + shots * 330 + 700);
-  }
-
-  /* slice time: the cake gets cut while the camera dives smoothly to the plate */
-  function cutCake() {
-    if (state !== "finale") return;
-    sfx("cut");
-    world.cutSlice();
-    flyTo(EAT_VIEW, reduced ? 0 : 2.5, () => {
-      state = "eat";
-      if (cb.onEatReady) cb.onEatReady();
-    });
   }
 
   function reset() {
@@ -383,7 +355,6 @@ export function createGame({ canvas, callbacks }) {
     found = 0;
     world.restoreOrbs();
     world.focusOrb(0);
-    world.resetSlice();
     world.puffCandles();
     world.hideCake();
     world.sleepCastle();
@@ -526,19 +497,6 @@ export function createGame({ canvas, callbacks }) {
     });
   }
 
-  /* where the cake slice is on screen (for testing the eating part) */
-  function sliceScreens() {
-    scene.updateMatrixWorld(true);
-    const v = world.sliceHit.getWorldPosition(new window.THREE.Vector3());
-    const p = v.project(camera);
-    return [{
-      x: (p.x * 0.5 + 0.5) * window.innerWidth,
-      y: (-p.y * 0.5 + 0.5) * window.innerHeight,
-      front: p.z < 1,
-      s: world.sliceState,
-    }];
-  }
-
   /* debug helper: aim a ray at a screen point and say what it hits */
   function debugRay(cx, cy) {
     const r = canvas.getBoundingClientRect();
@@ -562,15 +520,14 @@ export function createGame({ canvas, callbacks }) {
     start: begin,
     cardClosed,
     makeWish,
-    cutCake,
     enterCastle,
     walkForward,
     walkToLetter,
     reset,
     orbScreens,
     candleScreens,
-    sliceScreens,
     debugRay,
+    candleTotal: () => world.candles.length,
     get state() { return state; },
     get found() { return found; },
     get world() { return world; },

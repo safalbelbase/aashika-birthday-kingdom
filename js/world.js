@@ -71,6 +71,33 @@ const glowTex = () =>
     [1, "rgba(255,220,160,0)"],
   ]);
 
+function flameTexture() {
+  const c = document.createElement("canvas");
+  c.width = 64;
+  c.height = 128;
+  const g = c.getContext("2d");
+  function drawFlame(cx, cy) {
+    g.save();
+    g.translate(cx, cy);
+    g.beginPath();
+    g.moveTo(0, 60);
+    g.bezierCurveTo(-18, 30, -14, -10, 0, -60);
+    g.bezierCurveTo(14, -10, 18, 30, 0, 60);
+    g.closePath();
+    const grad = g.createLinearGradient(0, 60, 0, -60);
+    grad.addColorStop(0, "rgba(255,120,20,0)");
+    grad.addColorStop(0.25, "rgba(255,120,20,0.9)");
+    grad.addColorStop(0.55, "rgba(255,180,40,1)");
+    grad.addColorStop(0.8, "rgba(255,230,120,1)");
+    grad.addColorStop(1, "rgba(255,255,230,1)");
+    g.fillStyle = grad;
+    g.fill();
+    g.restore();
+  }
+  drawFlame(32, 64);
+  return new T.CanvasTexture(c);
+}
+
 function sprite(color, scale, opacity = 1) {
   const m = new T.SpriteMaterial({
     map: glowTex(),
@@ -332,149 +359,118 @@ export function createWorld() {
     });
   }
 
-  /* ---- birthday cake (rises later) — with a real 45° slice to cut out ---- */
+  /* ---- birthday cake (rises later) — melted chocolate, ganache drip ---- */
   const cake = new T.Group();
   cake.position.set(0, -5, 2.5);
   cake.visible = false;
   scene.add(cake);
 
-  const SLICE = Math.PI / 4; // the wedge, facing the camera (+z)
-
-  function pieTier(r, h, y, color, cutColor, parent) {
-    /* the cake minus the slice: capped shell + the two crumb faces left behind */
-    const g = new T.Group();
-    const shell = new T.Mesh(
-      new T.CylinderGeometry(r, r, h, 28, 1, false, SLICE / 2, Math.PI * 2 - SLICE),
-      mat(color, { flatShading: false })
-    );
-    shell.position.y = y;
-    g.add(shell);
-    [-SLICE / 2, SLICE / 2].forEach((a) => {
-      const holder = new T.Group();
-      const face = new T.Mesh(new T.PlaneGeometry(r, h), mat(cutColor, { flatShading: false, side: T.DoubleSide }));
-      face.position.x = r / 2;
-      holder.add(face);
-      holder.position.y = y;
-      holder.rotation.y = a - Math.PI / 2;
-      g.add(holder);
-    });
-    parent.add(g);
-  }
-
-  pieTier(1.2, 0.55, 0.28, 0xffdcea, 0xcf9fb8, cake);
-  pieTier(0.85, 0.5, 0.8, 0xffc2da, 0xc982a3, cake);
-  const drip = new T.Mesh(
-    new T.TorusGeometry(0.85, 0.08, 8, 26, Math.PI * 2 - SLICE),
-    mat(0xff9ecb, { flatShading: false })
-  );
-  const dripG = new T.Group();
-  dripG.rotation.y = SLICE / 2;
-  drip.rotation.x = Math.PI / 2;
-  drip.position.y = 1.03;
-  dripG.add(drip);
-  cake.add(dripG);
-
-  /* the slice itself, filling the notch exactly */
-  const wedge = new T.Group();
-  cake.add(wedge);
-  function wedgeTier(r, h, y, color, cutColor) {
-    const g = new T.Group();
-    const piece = new T.Mesh(
-      new T.CylinderGeometry(r, r, h, 14, 1, false, -SLICE / 2, SLICE),
-      mat(color, { flatShading: false })
-    );
-    piece.position.y = y;
-    g.add(piece);
-    [-SLICE / 2, SLICE / 2].forEach((a) => {
-      const holder = new T.Group();
-      const face = new T.Mesh(new T.PlaneGeometry(r, h), mat(cutColor, { flatShading: false, side: T.DoubleSide }));
-      face.position.x = r / 2;
-      holder.add(face);
-      holder.position.y = y;
-      holder.rotation.y = a - Math.PI / 2;
-      g.add(holder);
-    });
-    wedge.add(g);
-  }
-  wedgeTier(1.2, 0.55, 0.28, 0xffdcea, 0xcf9fb8);
-  wedgeTier(0.85, 0.5, 0.8, 0xffc2da, 0xc982a3);
-
-  /* matching drip on the slice */
-  const wedgeDrip = new T.Mesh(
-    new T.TorusGeometry(0.85, 0.08, 8, 10, SLICE),
-    mat(0xff9ecb, { flatShading: false })
-  );
-  const wedgeDripG = new T.Group();
-  wedgeDripG.rotation.y = -SLICE / 2;
-  wedgeDrip.rotation.x = Math.PI / 2;
-  wedgeDrip.position.y = 1.03;
-  wedgeDripG.add(wedgeDrip);
-  wedge.add(wedgeDripG);
-
-  /* a cherry on top of the slice */
-  const cherry = new T.Mesh(
-    new T.SphereGeometry(0.09, 12, 10),
-    new T.MeshLambertMaterial({ color: 0xff3b66, flatShading: false })
-  );
-  cherry.position.set(0, 1.13, 0.35);
-  wedge.add(cherry);
-
-  /* fat invisible cushion so taps on the slice always land */
-  const sliceHit = new T.Mesh(
-    new T.SphereGeometry(0.85, 8, 6),
-    new T.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
-  );
-  sliceHit.position.set(0, 0.65, 0.45);
-  wedge.add(sliceHit);
-
-  /* the plate the slice lands on */
-  const plateG = new T.Group();
-  const plate = new T.Mesh(
-    new T.CylinderGeometry(1.2, 1.08, 0.06, 24),
-    mat(0xfffbfc, { flatShading: false })
-  );
-  const plateRim = new T.Mesh(
-    new T.TorusGeometry(1.16, 0.035, 8, 24),
-    mat(0xffd79e, { flatShading: false })
-  );
-  plateRim.rotation.x = Math.PI / 2;
-  plateRim.position.y = 0.03;
-  plateG.add(plate, plateRim);
-  plateG.position.set(0.25, 0.045, 1.95);
-  plateG.visible = false;
-  cake.add(plateG);
+  /* the model is authored in big units; this brings it into the kingdom's scale */
+  const CAKE_SCALE = 0.034;
+  cake.scale.setScalar(CAKE_SCALE);
 
   const candles = [];
-  const flameMap = glowTex();
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2;
-    const x = Math.cos(a) * 0.5;
-    const z = Math.sin(a) * 0.5;
-    const stick = new T.Mesh(
-      new T.CylinderGeometry(0.07, 0.07, 0.44, 8),
-      new T.MeshLambertMaterial({ color: i % 2 ? 0x7fd8ff : 0xff8fc4, flatShading: false })
+
+  function createChocolateCake(opts) {
+    opts = opts || {};
+    const darkChoc    = opts.darkChoc    || 0x2b1810;
+    const ganache     = opts.ganache     || 0x4a2c1a;
+    const ganacheGlow = opts.ganacheGlow || 0x6b3f24;
+    const candleCols  = opts.candleCols  || [0xffd87a, 0xff6b6b, 0xe8e8e8, 0xd4a056, 0xff9ecb, 0x8ad8ff, 0xffb3c6];
+    const candleCount = opts.candleCount || 7;
+
+    const chocMat = new T.MeshStandardMaterial({ color: darkChoc, roughness: 0.55, metalness: 0.08 });
+    const ganacheMat = new T.MeshStandardMaterial({ color: ganache, roughness: 0.18, metalness: 0.15 });
+    const ganacheTopMat = new T.MeshStandardMaterial({ color: ganacheGlow, roughness: 0.12, metalness: 0.2 });
+
+    function addDrips(group, radius, y, m, count) {
+      for (let i = 0; i < count; i++) {
+        const a = (i / count) * Math.PI * 2 + Math.random() * 0.2;
+        const drop = new T.Mesh(new T.SphereGeometry(1.6 + Math.random() * 1.4, 8, 8), m);
+        drop.position.set(Math.cos(a) * radius, y - (3 + Math.random() * 4), Math.sin(a) * radius);
+        drop.scale.y = 1.6;
+        group.add(drop);
+      }
+    }
+
+    /* bottom tier */
+    const tier1 = new T.Mesh(new T.CylinderGeometry(34, 36, 22, 48), chocMat);
+    tier1.position.y = 11;
+    cake.add(tier1);
+
+    const collar1 = new T.Mesh(new T.TorusGeometry(34, 4.2, 16, 48), ganacheMat);
+    collar1.rotation.x = Math.PI / 2;
+    collar1.position.y = 21.5;
+    cake.add(collar1);
+    addDrips(cake, 34, 21.5, ganacheMat, 14);
+
+    /* top tier */
+    const tier2 = new T.Mesh(new T.CylinderGeometry(23, 25, 17, 48), chocMat);
+    tier2.position.y = 22 + 8.5;
+    cake.add(tier2);
+
+    const collar2 = new T.Mesh(new T.TorusGeometry(23, 3.2, 16, 48), ganacheMat);
+    collar2.rotation.x = Math.PI / 2;
+    collar2.position.y = 22 + 17;
+    cake.add(collar2);
+    addDrips(cake, 23, 22 + 17, ganacheMat, 10);
+
+    /* glossy ganache glaze pooled on top */
+    const glaze = new T.Mesh(new T.CylinderGeometry(22, 22, 2.2, 48), ganacheTopMat);
+    glaze.position.y = 22 + 17 + 1.1;
+    cake.add(glaze);
+
+    /* candles */
+    const candleY = 22 + 17 + 2.2;
+    const flameTex = flameTexture();
+    for (let i = 0; i < candleCount; i++) {
+      const a = (i / candleCount) * Math.PI * 2 + 0.3;
+      const r = 11 + Math.random() * 6;
+      const cx = Math.cos(a) * r;
+      const cz = Math.sin(a) * r;
+      const col = candleCols[i % candleCols.length];
+
+      const stick = new T.Mesh(
+        new T.CylinderGeometry(1.1, 1.1, 13, 12),
+        new T.MeshStandardMaterial({ color: col, roughness: 0.4 })
+      );
+      stick.position.set(cx, candleY + 6.5, cz);
+      cake.add(stick);
+
+      const flame = new T.Sprite(new T.SpriteMaterial({
+        map: flameTex, color: 0xffffff, transparent: true, opacity: 0,
+        depthWrite: false, blending: T.AdditiveBlending,
+      }));
+      flame.position.set(cx, candleY + 13.6, cz);
+      flame.scale.set(3.2, 6.4, 1);
+      cake.add(flame);
+
+      const light = new T.PointLight(0xff9a3c, 0, 30);
+      light.position.copy(flame.position);
+      cake.add(light);
+
+      /* generous tap target — sized in world units, so it compensates for the group scale */
+      const hit = new T.Mesh(
+        new T.SphereGeometry(0.34 / CAKE_SCALE, 8, 6),
+        new T.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+      );
+      hit.position.set(cx, candleY + 9, cz);
+      hit.userData.candle = i;
+      cake.add(hit);
+
+      candles.push({ stick, flame, light, hit, lit: false, phase: i });
+    }
+
+    /* cherry on top */
+    const cherry = new T.Mesh(
+      new T.SphereGeometry(2.6, 16, 16),
+      new T.MeshStandardMaterial({ color: 0xc81e3a, roughness: 0.15, metalness: 0.1 })
     );
-    stick.position.set(x, 1.27, z);
-    cake.add(stick);
-
-    const flame = new T.Sprite(new T.SpriteMaterial({
-      map: flameMap, color: 0xffd27a, transparent: true, opacity: 0,
-      depthWrite: false, blending: T.AdditiveBlending,
-    }));
-    flame.position.set(x, 1.62, z);
-    flame.scale.set(0.42, 0.56, 1);
-    cake.add(flame);
-
-    const hit = new T.Mesh(
-      new T.SphereGeometry(0.34, 8, 6),
-      new T.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
-    );
-    hit.position.set(x, 1.4, z);
-    hit.userData.candle = i;
-    cake.add(hit);
-
-    candles.push({ stick, flame, hit, lit: false, phase: i });
+    cherry.position.set(0, candleY + 1.6, 0);
+    cake.add(cherry);
   }
+
+  createChocolateCake();
 
   /* ---- fireflies ---- */
   const flyCount = 46;
@@ -632,25 +628,15 @@ export function createWorld() {
       cake.visible = cake.position.y > -4.95;
     }
 
-    // candle flames
+    // candle flames — flicker
     for (const c of candles) {
       if (c.lit) {
-        const f = 1 + Math.sin(t * 9 + c.phase) * 0.14;
-        c.flame.scale.set(0.42 * f, 0.56 * (2 - f), 1);
-        c.flame.material.opacity = 0.85 + Math.sin(t * 11 + c.phase) * 0.15;
-      }
-    }
-
-    // pull the slice out of the cake and onto its plate
-    if (sliceState === "cutting") {
-      cutT = Math.min(1, cutT + dt * 0.40);
-      const e = easeInOutCubic(cutT);
-      wedge.position.set(0.25 * e, Math.sin(e * Math.PI) * 0.45 + 0.04 * e, 1.95 * e);
-      wedge.rotation.y = e * 0.55;   // a cut face turns toward the cake-eating camera
-      if (e > 0.2) plateG.visible = true;
-      if (cutT >= 1) {
-        sliceState = "plate";
-        cutT = 0;
+        const t0 = t + c.phase * 1.7;
+        const flicker = Math.sin(t0 * 18) * 0.08 + Math.sin(t0 * 7.3) * 0.05 + (Math.random() - 0.5) * 0.06;
+        c.flame.scale.set(3.2 + flicker, 6.4 + flicker * 1.8, 1);
+        c.flame.position.x = c.stick.position.x + Math.sin(t0 * 9) * 0.25;
+        c.flame.material.opacity = 0.9 + flicker;
+        c.light.intensity = 1.2 + flicker * 2;
       }
     }
 
@@ -694,6 +680,7 @@ export function createWorld() {
     if (!c || c.lit) return false;
     c.lit = true;
     c.flame.material.opacity = 0.9;
+    c.light.intensity = 1.2;
     return true;
   }
 
@@ -701,6 +688,7 @@ export function createWorld() {
     candles.forEach((c) => {
       c.lit = false;
       c.flame.material.opacity = 0;
+      c.light.intensity = 0;
     });
   }
 
@@ -718,73 +706,6 @@ export function createWorld() {
       o.visible = true;
       o.userData.active = false;
     });
-  }
-
-  /* ---- the slice ---- */
-  let sliceState = "whole";   // whole | cutting | plate | eaten
-  let cutT = 0;
-  let bites = 0;
-
-  function cutSlice() {
-    if (sliceState !== "whole") return false;
-    sliceState = "cutting";
-    cutT = 0;
-    // the candle standing in the slice comes along for the ride
-    const c = candles[2];
-    if (c && c.stick) {
-      // remember where it lives so resetSlice can put it back exactly
-      if (!c.home) {
-        c.home = {
-          stick: { p: c.stick.position.clone(), r: c.stick.rotation.clone(), s: c.stick.scale.clone() },
-          flame: c.flame ? { p: c.flame.position.clone(), r: c.flame.rotation.clone(), s: c.flame.scale.clone() } : null,
-          hit: c.hit ? { p: c.hit.position.clone(), r: c.hit.rotation.clone(), s: c.hit.scale.clone() } : null,
-        };
-      }
-      wedge.attach(c.stick);
-      if (c.flame) wedge.attach(c.flame);
-      if (c.hit) wedge.attach(c.hit);
-    }
-    return true;
-  }
-
-  function biteSlice() {
-    if (sliceState !== "plate") return false;
-    bites++;
-    const wp = new T.Vector3();
-    sliceHit.getWorldPosition(wp);
-    burst(wp, 0xffd7ec, { count: 24, speed: 2.4, life: 0.9, size: 0.22, gravity: 3.6 });
-    if (bites >= 3) {
-      sliceState = "eaten";
-      wedge.visible = false;
-    } else {
-      const s = bites === 1 ? 0.72 : 0.45;
-      wedge.scale.setScalar(s);
-    }
-    return bites;
-  }
-
-  function resetSlice() {
-    // candle returns to the cake
-    const c = candles[2];
-    if (c && c.stick) {
-      if (c.stick.parent !== cake) cake.attach(c.stick);
-      if (c.flame && c.flame.parent !== cake) cake.attach(c.flame);
-      if (c.hit && c.hit.parent !== cake) cake.attach(c.hit);
-      const h = c.home;
-      if (h) {
-        c.stick.position.copy(h.stick.p); c.stick.rotation.copy(h.stick.r); c.stick.scale.copy(h.stick.s);
-        if (h.flame && c.flame) { c.flame.position.copy(h.flame.p); c.flame.rotation.copy(h.flame.r); c.flame.scale.copy(h.flame.s); }
-        if (h.hit && c.hit) { c.hit.position.copy(h.hit.p); c.hit.rotation.copy(h.hit.r); c.hit.scale.copy(h.hit.s); }
-      }
-    }
-    wedge.position.set(0, 0, 0);
-    wedge.rotation.y = 0;
-    wedge.scale.setScalar(1);
-    wedge.visible = true;
-    plateG.visible = false;
-    sliceState = "whole";
-    cutT = 0;
-    bites = 0;
   }
 
   /* =========================================================================
@@ -1054,9 +975,7 @@ export function createWorld() {
     scene, orbs, cake, candles, castle, island, bursts,
     burst, update, wakeCastle, showCake, sleepCastle, hideCake, lightCandle,
     puffCandles, hideOrb, restoreOrbs, focusOrb,
-    cutSlice, biteSlice, resetSlice, sliceHit,
     gallery, frames, letterHit, updateGallery,
-    get sliceState() { return sliceState; },
     get cakeTop() { return new T.Vector3(0, 1.6, 2.5); },
   };
 }

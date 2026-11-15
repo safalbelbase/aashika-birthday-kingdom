@@ -110,7 +110,7 @@ function setBar({ line, sub, btn, btn2, phase }) {
   barWrap.hidden = false;
 }
 
-const PHASE_STATE = { wish: "wish", cut: "finale", castle: "castle" };
+const PHASE_STATE = { wish: "wish", castle: "castle" };
 
 barBtn.addEventListener("click", () => {
   /* ignore a stale bar: the phase must match where the game actually is */
@@ -118,7 +118,6 @@ barBtn.addEventListener("click", () => {
   sfx("tap");
   barWrap.hidden = true;
   if (barPhase === "wish") game.makeWish();
-  else if (barPhase === "cut") game.cutCake();
   else if (barPhase === "castle") game.enterCastle();
 });
 
@@ -220,7 +219,7 @@ function boot() {
       },
       onCakeReady() {
         showHint(TEXT.cakeLine);
-        progress.textContent = `cake ✦ 0 / ${TEXT.stars.length}`;
+        progress.textContent = `cake ✦ 0 / ${game.candleTotal()}`;
       },
       onCandleLit(n, total) {
         progress.textContent = `cake ✦ ${n} / ${total}`;
@@ -232,27 +231,14 @@ function boot() {
         showHint(TEXT.wishLine);
         say(`all candles are lit. ${TEXT.wishLine}.`);
       },
-      onCutReady() {
-        setBar({ line: TEXT.cutLine, btn: TEXT.cutBtn, phase: "cut" });
-        showHint(TEXT.cutLine);
-        say(TEXT.cutLine);
-      },
-      onEatReady() {
-        showHint(TEXT.eatHint);
-        progress.textContent = "nom 0 / 3";
-      },
-      onBite(n) {
-        progress.textContent = `nom ${n} / 3`;
-        showCard(TEXT.biteLines[n - 1] || "✦");
-      },
       onCastleAhead() {
         setBar({
-          line: TEXT.afterEat,
+          line: TEXT.castleLine,
           btn: TEXT.enterCastleBtn,
           btn2: TEXT.readBtn,
           phase: "castle",
         });
-        say("one last thing is waiting in the castle.");
+        say(TEXT.castleLine);
       },
       onCastleEntered() {
         barWrap.hidden = true;
