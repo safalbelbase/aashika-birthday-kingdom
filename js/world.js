@@ -472,6 +472,9 @@ export function createWorld() {
 
   createChocolateCake();
 
+  /* shared flame sprite texture (gallery sconces) */
+  const flameMap = glowTex();
+
   /* ---- fireflies ---- */
   const flyCount = 46;
   const flyPos = new Float32Array(flyCount * 3);
