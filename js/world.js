@@ -371,17 +371,14 @@ export function createWorld() {
 
   const candles = [];
 
+  const chocMat = new T.MeshStandardMaterial({ color: 0x2b1810, roughness: 0.55, metalness: 0.08 });
+  const ganacheMat = new T.MeshStandardMaterial({ color: 0x4a2c1a, roughness: 0.18, metalness: 0.15 });
+  const ganacheTopMat = new T.MeshStandardMaterial({ color: 0x6b3f24, roughness: 0.12, metalness: 0.2 });
+  const candleCols = [0xffd87a, 0xff6b6b, 0xe8e8e8, 0xd4a056, 0xff9ecb, 0x8ad8ff, 0xffb3c6];
+
   function createChocolateCake(opts) {
     opts = opts || {};
-    const darkChoc    = opts.darkChoc    || 0x2b1810;
-    const ganache     = opts.ganache     || 0x4a2c1a;
-    const ganacheGlow = opts.ganacheGlow || 0x6b3f24;
-    const candleCols  = opts.candleCols  || [0xffd87a, 0xff6b6b, 0xe8e8e8, 0xd4a056, 0xff9ecb, 0x8ad8ff, 0xffb3c6];
     const candleCount = opts.candleCount || 7;
-
-    const chocMat = new T.MeshStandardMaterial({ color: darkChoc, roughness: 0.55, metalness: 0.08 });
-    const ganacheMat = new T.MeshStandardMaterial({ color: ganache, roughness: 0.18, metalness: 0.15 });
-    const ganacheTopMat = new T.MeshStandardMaterial({ color: ganacheGlow, roughness: 0.12, metalness: 0.2 });
 
     function addDrips(group, radius, y, m, count) {
       for (let i = 0; i < count; i++) {
@@ -445,7 +442,7 @@ export function createWorld() {
       flame.scale.set(3.2, 6.4, 1);
       cake.add(flame);
 
-      const light = new T.PointLight(0xff9a3c, 0, 30);
+      const light = new T.PointLight(0xff9a3c, 0, 22);
       light.position.copy(flame.position);
       cake.add(light);
 
@@ -471,6 +468,74 @@ export function createWorld() {
   }
 
   createChocolateCake();
+
+  /* ---- the slice that pops out (same chocolate cake) ---- */
+  const SLICE_ANG = Math.PI / 5;
+  const slice = new T.Group();
+  const sliceCrumbMat = new T.MeshStandardMaterial({ color: 0x5c3a24, roughness: 0.75, side: T.DoubleSide });
+
+  {
+    /* the two curved tiers, cut to a wedge */
+    const wedge1 = new T.Mesh(new T.CylinderGeometry(36, 36, 22, 32, 1, false, 0, SLICE_ANG), chocMat);
+    wedge1.position.y = 11;
+    slice.add(wedge1);
+    const wedge2 = new T.Mesh(new T.CylinderGeometry(25, 25, 17, 32, 1, false, 0, SLICE_ANG), chocMat);
+    wedge2.position.y = 22 + 8.5;
+    slice.add(wedge2);
+
+    /* flat cross-section faces so the cut edge isn't hollow */
+    function radialCap(radius, height, yPos, angle) {
+      const geo = new T.PlaneGeometry(radius, height);
+      geo.translate(radius / 2, height / 2, 0);
+      const mesh = new T.Mesh(geo, sliceCrumbMat);
+      mesh.rotation.y = -angle;
+      mesh.position.y = yPos - height / 2;
+      return mesh;
+    }
+    slice.add(radialCap(36, 22, 22, 0));
+    slice.add(radialCap(36, 22, 22, SLICE_ANG));
+    slice.add(radialCap(25, 17, 22 + 17, 0));
+    slice.add(radialCap(25, 17, 22 + 17, SLICE_ANG));
+
+    /* ganache drips along the slice's outer crust */
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * SLICE_ANG;
+      const drop = new T.Mesh(new T.SphereGeometry(2 + Math.random(), 8, 8), ganacheMat);
+      drop.position.set(Math.cos(a) * 36, 20 - Math.random() * 3, Math.sin(a) * 36);
+      drop.scale.y = 1.5;
+      slice.add(drop);
+    }
+  }
+
+  /* centre the wedge on +z so it faces the camera like the rest of the cake */
+  slice.rotation.y = -SLICE_ANG / 2;
+  slice.visible = false;
+  cake.add(slice);
+
+  /* tap cushion for eating — sits at the slice's centre */
+  const sliceHit = new T.Mesh(
+    new T.SphereGeometry(10, 8, 6),
+    new T.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+  );
+  sliceHit.position.set(0, 10, 0);
+  slice.add(sliceHit);
+
+  /* the plate the slice lands on (world units -> local via CAKE_SCALE) */
+  const plateG = new T.Group();
+  const plate = new T.Mesh(
+    new T.CylinderGeometry(35, 32, 1.8, 24),
+    mat(0xfffbfc, { flatShading: false })
+  );
+  const plateRim = new T.Mesh(
+    new T.TorusGeometry(34, 1, 8, 24),
+    mat(0xffd79e, { flatShading: false })
+  );
+  plateRim.rotation.x = Math.PI / 2;
+  plateRim.position.y = 0.9;
+  plateG.add(plate, plateRim);
+  plateG.position.set(7.35, 16.2, 57.35);
+  plateG.visible = false;
+  cake.add(plateG);
 
   /* shared flame sprite texture (gallery sconces) */
   const flameMap = glowTex();
@@ -639,8 +704,25 @@ export function createWorld() {
         c.flame.scale.set(3.2 + flicker, 6.4 + flicker * 1.8, 1);
         c.flame.position.x = c.stick.position.x + Math.sin(t0 * 9) * 0.25;
         c.flame.material.opacity = 0.9 + flicker;
-        c.light.intensity = 1.2 + flicker * 2;
+        c.light.intensity = 0.5 + flicker * 0.8;
       }
+    }
+
+    // pull the slice out of the cake and onto its plate
+    if (sliceState === "cutting") {
+      popT = Math.min(1, popT + dt / 1.1);
+      const ease = 1 - Math.pow(1 - popT, 3);
+      slice.position.set(
+        7.35 * ease,
+        16.2 * ease + Math.sin(ease * Math.PI) * 6,
+        57.35 * ease
+      );
+      slice.rotation.y = ease * 0.5;
+      if (ease > 0.2) plateG.visible = true;
+      if (popT >= 1) sliceState = "plate";
+    } else if (sliceState === "eaten" && slice.visible) {
+      slice.scale.multiplyScalar(0.88);
+      if (slice.scale.x < 0.03) slice.visible = false;
     }
 
     updateFX(dt);
@@ -683,7 +765,7 @@ export function createWorld() {
     if (!c || c.lit) return false;
     c.lit = true;
     c.flame.material.opacity = 0.9;
-    c.light.intensity = 1.2;
+    c.light.intensity = 0.5;
     return true;
   }
 
@@ -709,6 +791,44 @@ export function createWorld() {
       o.visible = true;
       o.userData.active = false;
     });
+  }
+
+  /* ---- the slice ---- */
+  let sliceState = "whole";   // whole | cutting | plate | eaten
+  let popT = 0;
+  let bites = 0;
+
+  function cutSlice() {
+    if (sliceState !== "whole") return false;
+    sliceState = "cutting";
+    popT = 0;
+    slice.visible = true;
+    return true;
+  }
+
+  function biteSlice() {
+    if (sliceState !== "plate") return false;
+    bites++;
+    const wp = new T.Vector3();
+    sliceHit.getWorldPosition(wp);
+    burst(wp, 0xffd7ec, { count: 24, speed: 2.4, life: 0.9, size: 0.22, gravity: 3.6 });
+    if (bites >= 3) {
+      sliceState = "eaten";
+    } else {
+      slice.scale.setScalar(bites === 1 ? 0.72 : 0.45);
+    }
+    return bites;
+  }
+
+  function resetSlice() {
+    slice.visible = false;
+    slice.position.set(0, 0, 0);
+    slice.rotation.set(0, -SLICE_ANG / 2, 0);
+    slice.scale.setScalar(1);
+    plateG.visible = false;
+    sliceState = "whole";
+    popT = 0;
+    bites = 0;
   }
 
   /* =========================================================================
@@ -978,7 +1098,9 @@ export function createWorld() {
     scene, orbs, cake, candles, castle, island, bursts,
     burst, update, wakeCastle, showCake, sleepCastle, hideCake, lightCandle,
     puffCandles, hideOrb, restoreOrbs, focusOrb,
+    cutSlice, biteSlice, resetSlice, sliceHit,
     gallery, frames, letterHit, updateGallery,
+    get sliceState() { return sliceState; },
     get cakeTop() { return new T.Vector3(0, 1.6, 2.5); },
   };
 }

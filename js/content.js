@@ -34,6 +34,15 @@ export const TEXT = {
   wishSub: "you're turning 17. take your time. the candles will wait ✦",
   wishBtn: "i made my wish ✓",
 
+  cutLine: "now the best part. cut the first slice!",
+  cutBtn: "cut a slice ✦",
+  eatHint: "tap the slice. it's yours. eat up ✦",
+  biteLines: [
+    "first bite. approved.",
+    "second bite. even better.",
+    "okay that's the whole slice. worth it.",
+  ],
+  afterEat: "you're officially 17 now. one last thing is waiting in the castle ✦",
   castleLine: "the castle is open now. one last thing is waiting inside ✦",
   readBtn: "see the wishes again",
   againBtn: "✦ play it again",
