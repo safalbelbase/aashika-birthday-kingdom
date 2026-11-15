@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>a little birthday kingdom · for Aashika</title>
+<meta name="description" content="a tiny 3D fairytale kingdom, made just for Aashika">
+<meta name="theme-color" content="#150f36">
+<meta property="og:type" content="website">
+<meta property="og:title" content="a little birthday kingdom · for Aashika">
+<meta property="og:description" content="a tiny 3D fairytale kingdom, made just for Aashika ✦ turn your sound on">
+<meta property="og:image" content="photos/1.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>✦</text></svg>">
+<link rel="preload" href="fonts/fraunces-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/nunito-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/caveat-500.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles/fonts.css">
+<link rel="stylesheet" href="styles/styles.css">
+</head>
+
+<body>
+
+<noscript><p style="padding:28px;text-align:center;font-family:sans-serif;color:#fff6e6">this kingdom needs javascript turned on ✦</p></noscript>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+<div class="glow-frame" aria-hidden="true"></div>
+
+<div id="ui">
+
+  <!-- ======================= START ======================= -->
+  <section class="screen screen--center is-on" id="startScreen">
+    <div class="start-inner">
+      <span class="sparkle sparkle--1" aria-hidden="true">✦</span>
+      <span class="sparkle sparkle--2" aria-hidden="true">✧</span>
+      <span class="sparkle sparkle--3" aria-hidden="true">✦</span>
+      <p class="eyebrow" data-c="eyebrow"></p>
+      <h1 class="title" data-c="title"></h1>
+      <p class="subtitle" data-c="subtitle"></p>
+      <button type="button" class="btn btn--magic" id="startBtn" data-c="startBtn"></button>
+      <p class="tiny" data-c="startNote"></p>
+    </div>
+  </section>
+
+  <!-- ========================= HUD ======================== -->
+  <div class="hud" id="hud" hidden>
+    <div class="hud__top">
+      <span class="pill" id="progress">✦ 0 / 8</span>
+      <span style="flex:1"></span>
+      <button type="button" class="pill" id="pillWishes" data-c="pillWishes" hidden></button>
+      <button type="button" class="icon-btn" id="soundBtn" aria-pressed="false" aria-label="sound">♪</button>
+    </div>
+    <p class="hud__hint" id="hint" data-c="hint"></p>
+    <div class="hud__bar" id="barWrap" hidden>
+      <p class="hud__line" id="barLine"></p>
+      <p class="hud__sub" id="barSub" hidden></p>
+      <button type="button" class="btn btn--magic btn--small" id="barBtn" data-c="wishBtn"></button>
+      <button type="button" class="btn btn--ghost btn--small" id="barBtn2" hidden></button>
+    </div>
+    <div class="hud__bar hud__gallery" id="galleryBar" hidden>
+      <button type="button" class="btn btn--magic btn--small" id="walkBtn" data-c="walkBtn"></button>
+      <button type="button" class="btn btn--ghost btn--small" id="toLetterBtn" data-c="toLetterBtn"></button>
+    </div>
+  </div>
+
+  <!-- ================== MESSAGE CARD (a wish) ============= -->
+  <div class="sheet" id="card" hidden>
+    <div class="sheet__body">
+      <span class="sheet__star" aria-hidden="true">✦</span>
+      <p class="sheet__text" id="cardText"></p>
+      <p class="sheet__tap" id="cardTap" data-c="cardTap">tap to keep going</p>
+    </div>
+  </div>
+
+  <!-- ================== PHOTO PREVIEW MODAL ================= -->
+  <div class="sheet sheet--photo" id="photoModal" hidden>
+    <div class="sheet__body sheet__body--photo">
+      <span class="sheet__star" aria-hidden="true">✦</span>
+      <h3 class="sheet__title" id="photoTitle">memory</h3>
+      <div class="photo-img-wrap">
+        <img id="photoImg" src="" alt="memory photo" />
+      </div>
+      <button type="button" class="btn btn--ghost btn--small" id="photoClose" data-c="photoClose"></button>
+    </div>
+  </div>
+
+  <!-- ================== PARCHMENT BIRTHDAY LETTER ================= -->
+  <div class="sheet sheet--letter" id="letterModal" hidden>
+    <div class="letter-scroll">
+      <div class="parchment">
+        <div class="parchment__seal" aria-hidden="true">✦</div>
+        <div class="parchment__body" id="letterText"></div>
+        <div class="parchment__actions">
+          <button type="button" class="btn btn--magic btn--small" id="letterAgainBtn" data-c="againBtn"></button>
+          <button type="button" class="btn btn--ghost btn--small" id="letterWishesBtn" data-c="letterWishesBtn"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================== ALL THE WISHES =================== -->
+  <div class="sheet sheet--list" id="wishes" hidden>
+    <div class="sheet__body">
+      <span class="sheet__star" aria-hidden="true">✦</span>
+      <h2 class="sheet__title" data-c="wishesTitle"></h2>
+      <div class="wishes-list" id="wishesList"></div>
+      <button type="button" class="btn btn--ghost btn--small" id="wishesClose">close</button>
+    </div>
+  </div>
+
+  <!-- ======================= NO WEBGL ===================== -->
+  <section class="screen screen--center" id="noGl" hidden>
+    <div class="start-inner">
+      <h1 class="title title--small" data-c="noGlTitle"></h1>
+      <p class="subtitle" data-c="noGlText"></p>
+    </div>
+  </section>
+
+  <p class="sr-only" role="status" aria-live="polite" id="live"></p>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
