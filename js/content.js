@@ -19,7 +19,7 @@ export const TEXT = {
     "may your year be as bright as you think you are in every mirror.",
     "may today be full of cake, gifts, and zero boring people.",
     "may all your secrets stay safe with me… mostly.",
-    "may every anxious thought find a quiet place today, and your heart feel light.",
+    "may peace follow you around like a shadow, today and every day.",
     "may you get everything you've been wishing for, even the silly things.",
     "may you always have someone to laugh with, even on the heavy days.",
     "happy 17th birthday, Aashika.",
