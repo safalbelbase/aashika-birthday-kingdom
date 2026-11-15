@@ -8,7 +8,7 @@ import { sfx } from "./audio.js";
 
 const HOME = { theta: 0.55, phi: 1.16, radius: 15, target: [0, 1.7, 0] };
 const CAKE_VIEW = { theta: 0.1, phi: 1.24, radius: 7.4, target: [0, 1.35, 2.3] };
-const EAT_VIEW = { theta: 0.15, phi: 1.15, radius: 3.4, target: [0.25, 0.62, 4.45] };
+const EAT_VIEW = { theta: 0.15, phi: 1.15, radius: 2.5, target: [0.25, 0.7, 4.45] };
 const GATE_VIEW = { theta: 0.14, phi: 1.34, radius: 4.8, target: [0, 1.2, -2.5] };
 
 export function createGame({ canvas, callbacks }) {

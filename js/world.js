@@ -713,6 +713,10 @@ export function createWorld() {
       slice.rotation.z = ease * 0.35;
       if (ease > 0.2) plateG.visible = true;
       if (popT >= 1) sliceState = "plate";
+    } else if (sliceState === "plate") {
+      /* gentle floating while it waits to be eaten */
+      slice.position.y += Math.sin(t * 2.2) * 0.0012;
+      slice.rotation.z = Math.sin(t * 1.6) * 0.02;
     } else if (sliceState === "eaten" && slice.visible) {
       slice.scale.multiplyScalar(0.88);
       if (slice.scale.x < 0.03) slice.visible = false;
