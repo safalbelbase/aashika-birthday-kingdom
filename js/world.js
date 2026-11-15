@@ -480,10 +480,10 @@ export function createWorld() {
   const slice = new T.Group();
   {
     const prism = new T.Mesh(
-      new T.CylinderGeometry(36, 36, 26, 3, 1),
+      new T.CylinderGeometry(16, 16, 16, 3, 1),
       chocMat
     );
-    prism.position.y = 13;
+    prism.position.y = 8;
     prism.rotation.y = -Math.PI / 2;   // flat side faces the camera
     slice.add(prism);
   }
@@ -492,24 +492,24 @@ export function createWorld() {
 
   /* tap cushion for eating — sits at the slice's centre */
   const sliceHit = new T.Mesh(
-    new T.SphereGeometry(10, 8, 6),
+    new T.SphereGeometry(14, 8, 6),
     new T.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
   );
-  sliceHit.position.set(0, 13, 0);
+  sliceHit.position.set(0, 8, 0);
   slice.add(sliceHit);
 
   /* the plate the slice lands on (world units -> local via CAKE_SCALE) */
   const plateG = new T.Group();
   const plate = new T.Mesh(
-    new T.CylinderGeometry(35, 32, 1.8, 24),
+    new T.CylinderGeometry(20, 18, 1.2, 24),
     mat(0xfffbfc, { flatShading: false })
   );
   const plateRim = new T.Mesh(
-    new T.TorusGeometry(34, 1, 8, 24),
+    new T.TorusGeometry(19, 0.6, 8, 24),
     mat(0xffd79e, { flatShading: false })
   );
   plateRim.rotation.x = Math.PI / 2;
-  plateRim.position.y = 0.9;
+  plateRim.position.y = 0.6;
   plateG.add(plate, plateRim);
   plateG.position.set(7.35, 16.2, 57.35);
   plateG.visible = false;
