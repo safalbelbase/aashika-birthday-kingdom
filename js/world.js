@@ -891,40 +891,47 @@ export function createWorld() {
   backWall.position.set(0, 2.8, 14);
   gallery.add(leftWall, rightWall, backWall);
 
-  // 8 Gilded Photo Frames (4 on left wall, 4 on right wall)
+  // 5 Gilded Photo Frames: 2 on each side wall + one grand frame at the back
   const frames = [];
   const texLoader = new T.TextureLoader();
-  const frameZ = [9, 3, -3, -9];
 
   // Sconces array for flame animation
   const sconceFlames = [];
 
-  for (let i = 0; i < 8; i++) {
-    const isLeft = i < 4;
-    const zIdx = i % 4;
-    const z = frameZ[zIdx];
-    const x = isLeft ? -4.28 : 4.28;
-    const rotY = isLeft ? Math.PI / 2 : -Math.PI / 2;
+  /* each frame keeps its photo's true aspect ratio so nothing gets stretched;
+     photos/1.jpg … photos/5.jpg map to these frames in order */
+  const frameSpecs = [
+    { x: -4.28, z: 7, rotY: Math.PI / 2, w: 2.0, h: 3.0 },
+    { x: -4.28, z: -5, rotY: Math.PI / 2, w: 3.6, h: 2.01 },
+    { x: 4.28, z: 7, rotY: -Math.PI / 2, w: 2.25, h: 3.0 },
+    { x: 4.28, z: -5, rotY: -Math.PI / 2, w: 3.6, h: 2.01 },
+    { x: 0, y: 2.75, z: 13.72, rotY: Math.PI, w: 3.6, h: 4.7, grand: true },
+  ];
+
+  for (let i = 0; i < frameSpecs.length; i++) {
+    const spec = frameSpecs[i];
+    const pad = spec.grand ? 0.6 : 0.5;
+    const frameY = spec.y != null ? spec.y : 2.3;
 
     const frameGroup = new T.Group();
-    frameGroup.position.set(x, 2.3, z);
-    frameGroup.rotation.y = rotY;
+    frameGroup.position.set(spec.x, frameY, spec.z);
+    frameGroup.rotation.y = spec.rotY;
 
     // Ornate gold frame
     const border = new T.Mesh(
-      new T.BoxGeometry(2.1, 2.7, 0.1),
+      new T.BoxGeometry(spec.w + pad, spec.h + pad, 0.1),
       mat(0xd4af37, { flatShading: false })
     );
     // Inner matting
     const matting = new T.Mesh(
-      new T.PlaneGeometry(1.82, 2.42),
+      new T.PlaneGeometry(spec.w + 0.16, spec.h + 0.2),
       mat(0xfffef8, { flatShading: false })
     );
     matting.position.z = 0.052;
 
     // The photo canvas itself
     const photoMat = new T.MeshBasicMaterial({ color: 0xffffff });
-    const photoMesh = new T.Mesh(new T.PlaneGeometry(1.68, 2.24), photoMat);
+    const photoMesh = new T.Mesh(new T.PlaneGeometry(spec.w, spec.h), photoMat);
     photoMesh.position.z = 0.055;
 
     // Load user photo from photos/{i+1}.jpg
@@ -941,39 +948,51 @@ export function createWorld() {
       }
     );
 
-    // Small brass plaque
-    const plaque = new T.Mesh(
-      new T.BoxGeometry(1.1, 0.22, 0.04),
-      mat(0xffdf88, { flatShading: false })
-    );
-    plaque.position.set(0, -1.5, 0.05);
+    frameGroup.add(border, matting, photoMesh);
+
+    // Small brass plaque (the grand back frame reaches too close to the floor)
+    if (!spec.grand) {
+      const plaque = new T.Mesh(
+        new T.BoxGeometry(1.1, 0.22, 0.04),
+        mat(0xffdf88, { flatShading: false })
+      );
+      plaque.position.set(0, -(spec.h + pad) / 2 - 0.16, 0.05);
+      frameGroup.add(plaque);
+    }
 
     // Tap cushion
     const hit = new T.Mesh(
-      new T.BoxGeometry(2.5, 3.2, 0.6),
+      new T.BoxGeometry(spec.w + 0.7, spec.h + 0.8, 0.6),
       new T.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
     );
     hit.userData = { type: "frame", index: i };
+    frameGroup.add(hit);
 
-    frameGroup.add(border, matting, photoMesh, plaque, hit);
     gallery.add(frameGroup);
     frames.push({ group: frameGroup, hit, index: i });
 
-    // Sconce above frame with warm light
-    const sconceLight = new T.PointLight(0xffcb78, 0.8, 6.5, 1.8);
-    sconceLight.position.set(isLeft ? -3.9 : 3.9, 3.9, z);
-    gallery.add(sconceLight);
+    // Sconces above the frames (two flanking the grand back frame) with warm light
+    const topY = frameY + (spec.h + pad) / 2 + 0.45;
+    const sconceSpots = spec.grand
+      ? [[-3.35, 4.6, spec.z], [3.35, 4.6, spec.z]]
+      : [[spec.x < 0 ? -4.05 : 4.05, topY, spec.z]];
 
-    const sconceFlame = new T.Sprite(new T.SpriteMaterial({
-      map: flameMap,
-      color: 0xffd27a,
-      blending: T.AdditiveBlending,
-      depthWrite: false,
-    }));
-    sconceFlame.scale.set(0.35, 0.48, 1);
-    sconceFlame.position.set(isLeft ? -4.05 : 4.05, 3.9, z);
-    gallery.add(sconceFlame);
-    sconceFlames.push({ flame: sconceFlame, light: sconceLight, phase: Math.random() * Math.PI * 2 });
+    for (const [sx, sy, sz] of sconceSpots) {
+      const sconceLight = new T.PointLight(0xffcb78, 0.8, 6.5, 1.8);
+      sconceLight.position.set(sx * 0.96, sy, sz);
+      gallery.add(sconceLight);
+
+      const sconceFlame = new T.Sprite(new T.SpriteMaterial({
+        map: flameMap,
+        color: 0xffd27a,
+        blending: T.AdditiveBlending,
+        depthWrite: false,
+      }));
+      sconceFlame.scale.set(0.35, 0.48, 1);
+      sconceFlame.position.set(sx, sy, sz);
+      gallery.add(sconceFlame);
+      sconceFlames.push({ flame: sconceFlame, light: sconceLight, phase: Math.random() * Math.PI * 2 });
+    }
   }
 
   // Archway at z = -14 leading to Letter Chamber

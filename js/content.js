@@ -55,13 +55,10 @@ export const TEXT = {
   toLetterBtn: "✦ the letter",
   photoTitles: [
     "memory 1 · the loud one",
-    "memory 2 · sibling chaos",
-    "memory 3 · laughing at nothing",
-    "memory 4 · the quiet talks",
-    "memory 5 · food wars",
-    "memory 6 · our favorite corner",
-    "memory 7 · always got your back",
-    "memory 8 · happy 17th, aashika",
+    "memory 2 · our favorite corner",
+    "memory 3 · sibling chaos",
+    "memory 4 · laughing at nothing",
+    "memory 5 · happy 17th, aashika",
   ],
   letter: [
     "happy 17th birthday, Aashika.",

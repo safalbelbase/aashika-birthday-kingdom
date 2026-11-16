@@ -25,11 +25,11 @@ Everything the player reads lives in **js/content.js**:
 
 - `stars[]` — the 8 wishes (one per collectible star)
 - `letter[]` — the birthday letter; the last line is the signature
-- `photoTitles[]` — the caption on each of the 8 gallery frames
+- `photoTitles[]` — the caption on each of the 5 gallery frames
 - `title` / `subtitle` — names
 - Every button label is a key in here, wired up by `data-c` in `index.html`
 
-The actual photos go in **photos/** as `1.jpg` … `8.jpg` — see
+The actual photos go in **photos/** as `1.jpg` … `5.jpg` — see
 `photos/README.md` for which frame is which.
 
 Colors live in `styles/styles.css` (`:root` tokens).
