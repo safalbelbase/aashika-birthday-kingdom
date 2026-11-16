@@ -30,7 +30,9 @@ Everything the player reads lives in **js/content.js**:
 - Every button label is a key in here, wired up by `data-c` in `index.html`
 
 The actual photos go in **photos/** as `1.jpg` … `5.jpg` — see
-`photos/README.md` for which frame is which.
+`photos/README.md` for which frame is which. The link-preview image used
+when the site is shared in chats is **photos/cover.jpg** (set in
+`index.html` → `og:image`).
 
 Colors live in `styles/styles.css` (`:root` tokens).
 The world (island, castle, cake, gallery) lives in `js/world.js`.
