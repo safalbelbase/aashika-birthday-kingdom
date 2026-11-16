@@ -54,11 +54,11 @@ export const TEXT = {
   walkBtn: "walk forward ✦",
   toLetterBtn: "✦ the letter",
   photoTitles: [
-    "memory 1 · the loud one",
-    "memory 2 · our favorite corner",
-    "memory 3 · sibling chaos",
-    "memory 4 · laughing at nothing",
-    "memory 5 · happy 17th, aashika",
+    "CUTE",
+    "PRETTY",
+    "GORGEOUS",
+    "STUNNING",
+    "THE PRETTIEST ♡",
   ],
   letter: [
     "a little letter for you, Aashikaaa ♡",

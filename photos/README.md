@@ -7,13 +7,13 @@ or screenshot-convert them to `.jpg` first.
 The gallery has 5 frames: two on the left wall, two on the right wall, and
 one grand frame on the back wall.
 
-| File | Where it shows up | Caption under the frame |
+| File | Where it shows up | Label in the pop-up |
 |---|---|---|
-| `1.jpg` | left wall, first frame (nearest the door) | memory 1 · the loud one |
-| `2.jpg` | left wall, second frame (nearest the arch) | memory 2 · our favorite corner |
-| `3.jpg` | right wall, first frame (nearest the door) | memory 3 · sibling chaos |
-| `4.jpg` | right wall, second frame (nearest the arch) | memory 4 · laughing at nothing |
-| `5.jpg` | back wall, the grand centerpiece | memory 5 · happy 17th, aashika |
+| `1.jpg` | left wall, first frame (nearest the door) | CUTE |
+| `2.jpg` | left wall, second frame (nearest the arch) | PRETTY |
+| `3.jpg` | right wall, first frame (nearest the door) | GORGEOUS |
+| `4.jpg` | right wall, second frame (nearest the arch) | STUNNING |
+| `5.jpg` | back wall, the grand centerpiece | THE PRETTIEST ♡ |
 
 Captions live in `js/content.js` → `photoTitles[]`. Change them there, and
 change the file names here — both must agree on the order.

@@ -141,7 +141,7 @@ function playAgain() {
 }
 
 function openPhotoModal(index) {
-  photoTitle.textContent = TEXT.photoTitles[index] || `memory ${index + 1}`;
+  photoTitle.textContent = TEXT.photoTitles[index] || "♡";
   photoImg.src = `photos/${index + 1}.jpg`;
   photoModal.hidden = false;
   photoModal.classList.remove("is-in");
